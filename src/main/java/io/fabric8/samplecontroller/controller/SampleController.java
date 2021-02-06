@@ -13,6 +13,7 @@ import io.fabric8.kubernetes.client.informers.cache.Cache;
 import io.fabric8.kubernetes.client.informers.cache.Lister;
 import io.fabric8.samplecontroller.api.model.v1alpha1.FooList;
 import io.fabric8.samplecontroller.api.model.v1alpha1.Foo;
+import io.fabric8.samplecontroller.api.model.v1alpha1.FooSpec;
 import io.fabric8.samplecontroller.api.model.v1alpha1.FooStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,7 @@ public class SampleController {
     }
 
     public void create() {
+        // Set up an event handler for when Foo resources change
         fooInformer.addEventHandler(new ResourceEventHandler<Foo>() {
             @Override
             public void onAdd(Foo foo) {
@@ -60,6 +62,12 @@ public class SampleController {
             }
         });
 
+        // Set up an event handler for when Deployment resources change. This
+        // handler will lookup the owner of the given Deployment, and if it is
+        // owned by a Foo resource will enqueue that Foo resource for
+        // processing. This way, we don't need to implement custom logic for
+        // handling Deployment resources. More info on this pattern:
+        // https://github.com/kubernetes/community/blob/8cafef897a22026d42f5e5bb3f104febe7e29830/contributors/devel/controllers.md
         deploymentInformer.addEventHandler(new ResourceEventHandler<Deployment>() {
             @Override
             public void onAdd(Deployment deployment) {
@@ -68,6 +76,8 @@ public class SampleController {
 
             @Override
             public void onUpdate(Deployment oldDeployment, Deployment newDeployment) {
+                // Periodic resync will send update events for all known Deployments.
+                // Two different versions of the same Deployment will always have different RVs.
                 if (oldDeployment.getMetadata().getResourceVersion().equals(newDeployment.getMetadata().getResourceVersion())) {
                     return;
                 }
@@ -83,11 +93,12 @@ public class SampleController {
 
     public void run() {
         logger.info("Starting {} controller", Foo.class.getSimpleName());
+        logger.info("Waiting for informer caches to sync");
         while (!deploymentInformer.hasSynced() || !fooInformer.hasSynced()) {
             // Wait till Informer syncs
         }
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             try {
                 logger.info("trying to fetch item from workqueue...");
                 if (workqueue.isEmpty()) {
@@ -126,16 +137,38 @@ public class SampleController {
     protected void reconcile(Foo foo) {
         String deploymentName = foo.getSpec().getDeploymentName();
         if (deploymentName == null || deploymentName.isEmpty()) {
+            // We choose to absorb the error here as the worker would requeue the
+            // resource otherwise. Instead, the next time the resource is updated
+            // the resource will be queued again.
             logger.warn("No Deployment name specified for Foo {}/{}", foo.getMetadata().getNamespace(), foo.getMetadata().getName());
+            return;
         }
 
+        // Get the deployment with the name specified in Foo.spec
         Deployment deployment = kubernetesClient.apps().deployments().inNamespace(foo.getMetadata().getNamespace()).withName(deploymentName).get();
+        // If the resource doesn't exist, we'll create it
         if (deployment == null) {
             createDeployments(foo);
             return;
         }
 
-        // Update Foo status
+        // If the Deployment is not controlled by this Foo resource, we should log
+        // a warning to the event recorder and return error msg.
+        if (!isControlledBy(deployment, foo)) {
+            logger.warn("Deployment {} is not controlled by Foo {}", deployment.getMetadata().getName(), foo.getMetadata().getName());
+            return;
+        }
+
+        // If this number of the replicas on the Foo resource is specified, and the
+        // number does not equal the current desired replicas on the Deployment, we
+        // should update the Deployment resource.
+        if (foo.getSpec().getReplicas() != deployment.getSpec().getReplicas()) {
+            logger.info("Foo {} replicas: {}, Deployment {} replicas: {}", foo.getMetadata().getName(), foo.getSpec().getReplicas(),
+                    deployment.getMetadata().getName(), deployment.getSpec().getReplicas());
+        }
+
+        // Finally, we update the status block of the Foo resource to reflect the
+        // current state of the world
         updateAvailableReplicasInFooStatus(foo, foo.getSpec().getReplicas());
     }
 
@@ -172,10 +205,24 @@ public class SampleController {
     private void updateAvailableReplicasInFooStatus(Foo foo, int replicas) {
         FooStatus fooStatus = new FooStatus();
         fooStatus.setAvailableReplicas(replicas);
-        foo.setStatus(fooStatus);
+        // NEVER modify objects from the store. It's a read-only, local cache.
+        // You can create a copy manually and modify it
+        Foo fooClone = getFooClone(foo);
+        fooClone.setStatus(fooStatus);
+        // If the CustomResourceSubresources feature gate is not enabled,
+        // we must use Update instead of UpdateStatus to update the Status block of the Foo resource.
+        // UpdateStatus will not allow changes to the Spec of the resource,
+        // which is ideal for ensuring nothing other than resource status has been updated.
         fooClient.inNamespace(foo.getMetadata().getNamespace()).withName(foo.getMetadata().getName()).updateStatus(foo);
     }
 
+    /**
+     * createNewDeployment creates a new Deployment for a Foo resource. It also sets
+     * the appropriate OwnerReferences on the resource so handleObject can discover
+     * the Foo resource that 'owns' it.
+     * @param foo {@link Foo} resource which will be owner of this Deployment
+     * @return Deployment object based on this Foo resource
+     */
     private Deployment createNewDeployment(Foo foo) {
         return new DeploymentBuilder()
                 .withNewMetadata()
@@ -217,5 +264,25 @@ public class SampleController {
             }
         }
         return null;
+    }
+
+    private boolean isControlledBy(HasMetadata obj, Foo foo) {
+        OwnerReference ownerReference = getControllerOf(obj);
+        if (ownerReference != null) {
+            return ownerReference.getKind().equals(foo.getKind()) && ownerReference.getName().equals(foo.getMetadata().getName());
+        }
+        return false;
+    }
+
+    private Foo getFooClone(Foo foo) {
+        Foo cloneFoo = new Foo();
+        FooSpec cloneFooSpec = new FooSpec();
+        cloneFooSpec.setDeploymentName(foo.getSpec().getDeploymentName());
+        cloneFooSpec.setReplicas(foo.getSpec().getReplicas());
+
+        cloneFoo.setSpec(cloneFooSpec);
+        cloneFoo.setMetadata(foo.getMetadata());
+
+        return cloneFoo;
     }
 }
