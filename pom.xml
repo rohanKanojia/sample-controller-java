@@ -3,9 +3,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>io.fabric8</groupId>
-    <artifactId>sample-controller-in-java</artifactId>
+    <artifactId>sample-controller-java</artifactId>
+    <name>Kubernetes Sample Controller in Java</name>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <properties>
@@ -17,6 +17,7 @@
         <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
         <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
         <jkube.version>1.1.0</jkube.version>
+        <slf4j-simple.version>1.7.30</slf4j-simple.version>
     </properties>
 
     <dependencies>
@@ -28,9 +29,10 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.30</version>
+            <version>${slf4j-simple.version}</version>
         </dependency>
 
+        <!-- Testing -->
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>kubernetes-server-mock</artifactId>
@@ -97,10 +99,8 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <!-- JUnit 5 requires Surefire version 2.22.0 or higher -->
                 <version>${maven-surefire-plugin.version}</version>
             </plugin>
         </plugins>
     </build>
-
 </project>
