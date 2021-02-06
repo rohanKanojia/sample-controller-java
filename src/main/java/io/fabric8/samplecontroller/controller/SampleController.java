@@ -165,6 +165,11 @@ public class SampleController {
         if (foo.getSpec().getReplicas() != deployment.getSpec().getReplicas()) {
             logger.info("Foo {} replicas: {}, Deployment {} replicas: {}", foo.getMetadata().getName(), foo.getSpec().getReplicas(),
                     deployment.getMetadata().getName(), deployment.getSpec().getReplicas());
+            deployment.getSpec().setReplicas(foo.getSpec().getReplicas());
+            kubernetesClient.apps().deployments()
+                    .inNamespace(foo.getMetadata().getNamespace())
+                    .withName(deployment.getMetadata().getNamespace())
+                    .replace(deployment);
         }
 
         // Finally, we update the status block of the Foo resource to reflect the

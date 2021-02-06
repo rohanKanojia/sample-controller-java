@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Main Class for Operator, you can run this sample using this command:
+ * Main Class for application, you can run this sample using this command:
  *
  *  mvn exec:java -Dexec.mainClass="io.fabric8.samplecontroller.SampleControllerMain"
  */
@@ -51,6 +51,7 @@ public class SampleControllerMain {
             informerFactory.startAllRegisteredInformers();
             informerFactory.addSharedInformerEventListener(exception -> logger.error("Exception occurred, but caught", exception));
 
+            logger.info("Starting Foo Controller");
             sampleController.run();
         } catch (KubernetesClientException exception) {
             logger.error("Kubernetes Client Exception : ", exception);
