@@ -4,11 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import io.fabric8.kubernetes.api.model.apps.DeploymentList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
@@ -31,13 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class SampleControllerTest {
     @Rule
     public KubernetesServer server = new KubernetesServer();
-
-    private static final CustomResourceDefinitionContext fooCRDContext = new CustomResourceDefinitionContext.Builder()
-            .withVersion("v1alpha1")
-            .withScope("Namespaced")
-            .withGroup("samplecontroller.k8s.io")
-            .withPlural("foos")
-            .build();
     private static final long RESYNC_PERIOD_MILLIS = 10 * 60 * 1000L;
 
     @Test
@@ -53,8 +44,8 @@ class SampleControllerTest {
 
         SharedInformerFactory informerFactory = client.informers();
         MixedOperation<Foo, FooList, Resource<Foo>> fooClient = client.customResources(Foo.class, FooList.class);
-        SharedIndexInformer<Deployment> deploymentSharedIndexInformer = informerFactory.sharedIndexInformerFor(Deployment.class, DeploymentList.class, RESYNC_PERIOD_MILLIS);
-        SharedIndexInformer<Foo> fooSharedIndexInformer = informerFactory.sharedIndexInformerForCustomResource(fooCRDContext, Foo.class, FooList.class, RESYNC_PERIOD_MILLIS);
+        SharedIndexInformer<Deployment> deploymentSharedIndexInformer = informerFactory.sharedIndexInformerFor(Deployment.class, RESYNC_PERIOD_MILLIS);
+        SharedIndexInformer<Foo> fooSharedIndexInformer = informerFactory.sharedIndexInformerForCustomResource(Foo.class, FooList.class, RESYNC_PERIOD_MILLIS);
         SampleController sampleController = new SampleController(client, fooClient, deploymentSharedIndexInformer, fooSharedIndexInformer, testNamespace);
 
         // When
