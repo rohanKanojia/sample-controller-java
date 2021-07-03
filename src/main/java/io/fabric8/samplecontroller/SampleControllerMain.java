@@ -23,7 +23,7 @@ import java.util.concurrent.Future;
  *  mvn exec:java -Dexec.mainClass="io.fabric8.samplecontroller.SampleControllerMain"
  */
 public class SampleControllerMain {
-    public static final Logger logger = LoggerFactory.getLogger(SampleControllerMain.class.getName());
+    public static final Logger logger = LoggerFactory.getLogger(SampleControllerMain.class.getSimpleName());
 
     public static void main(String[] args) {
         try (KubernetesClient client = new DefaultKubernetesClient()) {

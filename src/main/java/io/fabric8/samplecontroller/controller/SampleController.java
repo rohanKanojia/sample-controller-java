@@ -32,7 +32,7 @@ public class SampleController {
     private final Lister<Foo> fooLister;
     private final KubernetesClient kubernetesClient;
     private final MixedOperation<Foo, FooList, Resource<Foo>> fooClient;
-    public static final Logger logger = LoggerFactory.getLogger(SampleController.class);
+    public static final Logger logger = LoggerFactory.getLogger(SampleController.class.getSimpleName());
 
     public SampleController(KubernetesClient kubernetesClient, MixedOperation<Foo, FooList, Resource<Foo>> fooClient, SharedIndexInformer<Deployment> deploymentInformer, SharedIndexInformer<Foo> fooInformer, String namespace) {
         this.kubernetesClient = kubernetesClient;
