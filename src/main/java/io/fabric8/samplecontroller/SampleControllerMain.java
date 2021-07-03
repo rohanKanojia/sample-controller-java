@@ -14,6 +14,9 @@ import io.fabric8.samplecontroller.api.model.v1alpha1.FooList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 /**
  * Main Class for application, you can run this sample using this command:
  *
@@ -39,14 +42,20 @@ public class SampleControllerMain {
             SharedIndexInformer<Foo> fooSharedIndexInformer = informerFactory.sharedIndexInformerForCustomResource(Foo.class, FooList.class, 10 * 60 * 1000);
             SampleController sampleController = new SampleController(client, fooClient, deploymentSharedIndexInformer, fooSharedIndexInformer, namespace);
 
-            sampleController.create();
-            informerFactory.startAllRegisteredInformers();
             informerFactory.addSharedInformerEventListener(exception -> logger.error("Exception occurred, but caught", exception));
+            Future<Void> startInformersFuture = informerFactory.startAllRegisteredInformers();
+            startInformersFuture.get();
 
             logger.info("Starting Foo Controller");
             sampleController.run();
         } catch (KubernetesClientException exception) {
             logger.error("Kubernetes Client Exception : ", exception);
+        } catch (ExecutionException executionException) {
+            logger.info("Exception in starting all registered informers ", executionException);
+        } catch (InterruptedException interruptedException) {
+            logger.info("Interrupted : ", interruptedException);
+            Thread.currentThread().interrupt();
+            interruptedException.printStackTrace();
         }
     }
 }

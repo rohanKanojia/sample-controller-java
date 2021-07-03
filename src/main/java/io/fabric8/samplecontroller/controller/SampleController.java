@@ -41,9 +41,10 @@ public class SampleController {
         this.fooInformer = fooInformer;
         this.deploymentInformer = deploymentInformer;
         this.workqueue = new ArrayBlockingQueue<>(1024);
+        initInformerEventHandlers();
     }
 
-    public void create() {
+    private void initInformerEventHandlers() {
         // Set up an event handler for when Foo resources change
         fooInformer.addEventHandler(new ResourceEventHandler<Foo>() {
             @Override
@@ -195,16 +196,17 @@ public class SampleController {
     private void handleObject(HasMetadata obj) {
         logger.info("handleDeploymentObject({})", obj.getMetadata().getName());
         OwnerReference ownerReference = getControllerOf(obj);
-        Objects.requireNonNull(ownerReference);
-        if (!ownerReference.getKind().equalsIgnoreCase(Foo.class.getSimpleName())) {
-            return;
+        if (ownerReference != null) {
+            if (!ownerReference.getKind().equalsIgnoreCase(Foo.class.getSimpleName())) {
+                return;
+            }
+            Foo foo = fooLister.get(ownerReference.getName());
+            if (foo == null) {
+                logger.info("ignoring orphaned object '{}' of foo '{}'", obj.getMetadata().getSelfLink(), ownerReference.getName());
+                return;
+            }
+            enqueueFoo(foo);
         }
-        Foo foo = fooLister.get(ownerReference.getName());
-        if (foo == null) {
-            logger.info("ignoring orphaned object '{}' of foo '{}'", obj.getMetadata().getSelfLink(), ownerReference.getName());
-            return;
-        }
-        enqueueFoo(foo);
     }
 
     private void updateAvailableReplicasInFooStatus(Foo foo, int replicas) {
@@ -218,7 +220,7 @@ public class SampleController {
         // we must use Update instead of UpdateStatus to update the Status block of the Foo resource.
         // UpdateStatus will not allow changes to the Spec of the resource,
         // which is ideal for ensuring nothing other than resource status has been updated.
-        fooClient.inNamespace(foo.getMetadata().getNamespace()).withName(foo.getMetadata().getName()).updateStatus(foo);
+        fooClient.inNamespace(foo.getMetadata().getNamespace()).withName(foo.getMetadata().getName()).patchStatus(foo);
     }
 
     /**
