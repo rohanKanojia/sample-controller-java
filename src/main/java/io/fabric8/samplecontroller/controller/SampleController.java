@@ -220,7 +220,7 @@ public class SampleController {
         // we must use Update instead of UpdateStatus to update the Status block of the Foo resource.
         // UpdateStatus will not allow changes to the Spec of the resource,
         // which is ideal for ensuring nothing other than resource status has been updated.
-        fooClient.inNamespace(foo.getMetadata().getNamespace()).withName(foo.getMetadata().getName()).patchStatus(foo);
+        fooClient.inNamespace(foo.getMetadata().getNamespace()).withName(foo.getMetadata().getName()).patchStatus(fooClone);
     }
 
     /**

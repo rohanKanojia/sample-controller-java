@@ -33,7 +33,7 @@ Each Foo object would have a child `Deployment` which would have a specified num
 kubectl create -f src/main/resources/crd.yaml
 
 # Run Controller
-mvn exec:java -Dexec.mainClass=SampleControllerMain
+mvn exec:java -Dexec.mainClass=io.fabric8.samplecontroller.SampleControllerMain
 
 # create a custom resource of type Foo
 kubectl create -f src/main/resources/example-foo.yaml

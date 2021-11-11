@@ -9,14 +9,14 @@
     <version>1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <properties>
-        <version.fabric8.client>5.6.0</version.fabric8.client>
+        <version.fabric8.client>5.10.0</version.fabric8.client>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
         <junit-jupiter-engine.version>5.6.2</junit-jupiter-engine.version>
         <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
         <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
-        <jkube.version>1.4.0</jkube.version>
+        <jkube.version>1.5.1</jkube.version>
         <image.username>rohankanojia</image.username>
         <image.registry>quay.io</image.registry>
         <jkube.generator.name>${image.registry}/${image.username}/sample-controller-java:${project.version}</jkube.generator.name>

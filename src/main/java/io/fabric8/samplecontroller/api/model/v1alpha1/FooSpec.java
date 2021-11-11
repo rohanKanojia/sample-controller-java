@@ -10,7 +10,7 @@ public class FooSpec {
 
     @Override
     public String toString() {
-        return "FooSpec{replicas=" + replicas + "}";
+        return "FooSpec{replicas=" + replicas + ",deploymentName=" + deploymentName + "}";
     }
 
     public void setReplicas(int replicas) {

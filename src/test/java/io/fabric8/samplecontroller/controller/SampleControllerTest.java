@@ -43,9 +43,9 @@ class SampleControllerTest {
         KubernetesClient client = server.getClient();
 
         SharedInformerFactory informerFactory = client.informers();
-        MixedOperation<Foo, FooList, Resource<Foo>> fooClient = client.customResources(Foo.class, FooList.class);
+        MixedOperation<Foo, FooList, Resource<Foo>> fooClient = client.resources(Foo.class, FooList.class);
         SharedIndexInformer<Deployment> deploymentSharedIndexInformer = informerFactory.sharedIndexInformerFor(Deployment.class, RESYNC_PERIOD_MILLIS);
-        SharedIndexInformer<Foo> fooSharedIndexInformer = informerFactory.sharedIndexInformerForCustomResource(Foo.class, FooList.class, RESYNC_PERIOD_MILLIS);
+        SharedIndexInformer<Foo> fooSharedIndexInformer = informerFactory.sharedIndexInformerFor(Foo.class, RESYNC_PERIOD_MILLIS);
         SampleController sampleController = new SampleController(client, fooClient, deploymentSharedIndexInformer, fooSharedIndexInformer, testNamespace);
 
         // When

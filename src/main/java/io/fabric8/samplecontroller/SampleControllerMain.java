@@ -37,9 +37,9 @@ public class SampleControllerMain {
 
             SharedInformerFactory informerFactory = client.informers();
 
-            MixedOperation<Foo, FooList, Resource<Foo>> fooClient = client.customResources(Foo.class, FooList.class);
+            MixedOperation<Foo, FooList, Resource<Foo>> fooClient = client.resources(Foo.class, FooList.class);
             SharedIndexInformer<Deployment> deploymentSharedIndexInformer = informerFactory.sharedIndexInformerFor(Deployment.class, 10 * 60 * 1000);
-            SharedIndexInformer<Foo> fooSharedIndexInformer = informerFactory.sharedIndexInformerForCustomResource(Foo.class, FooList.class, 10 * 60 * 1000);
+            SharedIndexInformer<Foo> fooSharedIndexInformer = informerFactory.sharedIndexInformerFor(Foo.class, 10 * 60 * 1000);
             SampleController sampleController = new SampleController(client, fooClient, deploymentSharedIndexInformer, fooSharedIndexInformer, namespace);
 
             informerFactory.addSharedInformerEventListener(exception -> logger.error("Exception occurred, but caught", exception));
