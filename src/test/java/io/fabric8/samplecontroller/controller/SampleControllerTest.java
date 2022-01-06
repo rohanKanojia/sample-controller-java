@@ -9,26 +9,25 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.samplecontroller.api.model.v1alpha1.FooList;
 import io.fabric8.samplecontroller.api.model.v1alpha1.Foo;
 import io.fabric8.samplecontroller.api.model.v1alpha1.FooSpec;
 import okhttp3.mockwebserver.RecordedRequest;
-import org.junit.Rule;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 
 import java.net.HttpURLConnection;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@EnableRuleMigrationSupport
+@EnableKubernetesMockClient
 class SampleControllerTest {
-    @Rule
-    public KubernetesServer server = new KubernetesServer();
+    private KubernetesMockServer server;
+    private KubernetesClient client;
     private static final long RESYNC_PERIOD_MILLIS = 10 * 60 * 1000L;
 
     @Test
@@ -40,7 +39,6 @@ class SampleControllerTest {
         server.expect().post().withPath("/apis/apps/v1/namespaces/" + testNamespace + "/deployments")
                 .andReturn(HttpURLConnection.HTTP_CREATED, new DeploymentBuilder().withNewMetadata().withName(testFoo.getSpec().getDeploymentName()).endMetadata().build())
                 .times(testFoo.getSpec().getReplicas());
-        KubernetesClient client = server.getClient();
 
         SharedInformerFactory informerFactory = client.informers();
         MixedOperation<Foo, FooList, Resource<Foo>> fooClient = client.resources(Foo.class, FooList.class);

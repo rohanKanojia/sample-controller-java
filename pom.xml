@@ -9,11 +9,14 @@
     <version>1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <properties>
-        <version.fabric8.client>5.10.0</version.fabric8.client>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <version.fabric8.client>5.11.2</version.fabric8.client>
+        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
-        <junit-jupiter-engine.version>5.6.2</junit-jupiter-engine.version>
+        <junit-jupiter-engine.version>5.8.2</junit-jupiter-engine.version>
         <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
         <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
         <jkube.version>1.5.1</jkube.version>
@@ -23,11 +26,22 @@
         <slf4j-simple.version>1.7.30</slf4j-simple.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>kubernetes-client-bom</artifactId>
+                <version>${version.fabric8.client}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>kubernetes-client</artifactId>
-            <version>${version.fabric8.client}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -39,7 +53,6 @@
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>kubernetes-server-mock</artifactId>
-            <version>${version.fabric8.client}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -51,12 +64,6 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit-jupiter-engine.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-migrationsupport</artifactId>
             <version>${junit-jupiter-engine.version}</version>
             <scope>test</scope>
         </dependency>
@@ -103,6 +110,14 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <showDeprecation>true</showDeprecation>
+                </configuration>
             </plugin>
         </plugins>
     </build>
