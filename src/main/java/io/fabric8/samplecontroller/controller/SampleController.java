@@ -1,6 +1,7 @@
 package io.fabric8.samplecontroller.controller;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
@@ -11,7 +12,6 @@ import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.cache.Cache;
 import io.fabric8.kubernetes.client.informers.cache.Lister;
-import io.fabric8.samplecontroller.api.model.v1alpha1.FooList;
 import io.fabric8.samplecontroller.api.model.v1alpha1.Foo;
 import io.fabric8.samplecontroller.api.model.v1alpha1.FooSpec;
 import io.fabric8.samplecontroller.api.model.v1alpha1.FooStatus;
@@ -31,10 +31,10 @@ public class SampleController {
     private final SharedIndexInformer<Deployment> deploymentInformer;
     private final Lister<Foo> fooLister;
     private final KubernetesClient kubernetesClient;
-    private final MixedOperation<Foo, FooList, Resource<Foo>> fooClient;
+    private final MixedOperation<Foo, KubernetesResourceList<Foo>, Resource<Foo>> fooClient;
     public static final Logger logger = LoggerFactory.getLogger(SampleController.class.getSimpleName());
 
-    public SampleController(KubernetesClient kubernetesClient, MixedOperation<Foo, FooList, Resource<Foo>> fooClient, SharedIndexInformer<Deployment> deploymentInformer, SharedIndexInformer<Foo> fooInformer, String namespace) {
+    public SampleController(KubernetesClient kubernetesClient, MixedOperation<Foo, KubernetesResourceList<Foo>, Resource<Foo>> fooClient, SharedIndexInformer<Deployment> deploymentInformer, SharedIndexInformer<Foo> fooInformer, String namespace) {
         this.kubernetesClient = kubernetesClient;
         this.fooClient = fooClient;
         this.fooLister = new Lister<>(fooInformer.getIndexer(), namespace);
@@ -169,8 +169,8 @@ public class SampleController {
             deployment.getSpec().setReplicas(foo.getSpec().getReplicas());
             kubernetesClient.apps().deployments()
                     .inNamespace(foo.getMetadata().getNamespace())
-                    .withName(deployment.getMetadata().getNamespace())
-                    .replace(deployment);
+                    .resource(deployment)
+                    .replace();
         }
 
         // Finally, we update the status block of the Foo resource to reflect the
@@ -180,7 +180,7 @@ public class SampleController {
 
     private void createDeployments(Foo foo) {
         Deployment deployment = createNewDeployment(foo);
-        kubernetesClient.apps().deployments().inNamespace(foo.getMetadata().getNamespace()).create(deployment);
+        kubernetesClient.apps().deployments().inNamespace(foo.getMetadata().getNamespace()).resource(deployment).create();
     }
 
     private void enqueueFoo(Foo foo) {
@@ -220,7 +220,7 @@ public class SampleController {
         // we must use Update instead of UpdateStatus to update the Status block of the Foo resource.
         // UpdateStatus will not allow changes to the Spec of the resource,
         // which is ideal for ensuring nothing other than resource status has been updated.
-        fooClient.inNamespace(foo.getMetadata().getNamespace()).withName(foo.getMetadata().getName()).patchStatus(fooClone);
+        fooClient.inNamespace(foo.getMetadata().getNamespace()).resource(fooClone).replaceStatus();
     }
 
     /**
@@ -236,7 +236,7 @@ public class SampleController {
                   .withName(foo.getSpec().getDeploymentName())
                   .withNamespace(foo.getMetadata().getNamespace())
                   .withLabels(getDeploymentLabels(foo))
-                  .addNewOwnerReference().withController(true).withKind(foo.getKind()).withApiVersion(foo.getApiVersion()).withName(foo.getMetadata().getName()).withNewUid(foo.getMetadata().getUid()).endOwnerReference()
+                  .addNewOwnerReference().withController(true).withKind(foo.getKind()).withApiVersion(foo.getApiVersion()).withName(foo.getMetadata().getName()).endOwnerReference()
                 .endMetadata()
                 .withNewSpec()
                   .withReplicas(foo.getSpec().getReplicas())

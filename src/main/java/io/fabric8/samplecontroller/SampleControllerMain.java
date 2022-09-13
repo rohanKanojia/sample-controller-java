@@ -1,8 +1,9 @@
 package io.fabric8.samplecontroller;
 
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -10,7 +11,6 @@ import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.fabric8.samplecontroller.controller.SampleController;
 import io.fabric8.samplecontroller.api.model.v1alpha1.Foo;
-import io.fabric8.samplecontroller.api.model.v1alpha1.FooList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +26,7 @@ public class SampleControllerMain {
     public static final Logger logger = LoggerFactory.getLogger(SampleControllerMain.class.getSimpleName());
 
     public static void main(String[] args) {
-        try (KubernetesClient client = new DefaultKubernetesClient()) {
+        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
             String namespace = client.getNamespace();
             if (namespace == null) {
                 logger.info("No namespace found via config, assuming default.");
@@ -37,7 +37,7 @@ public class SampleControllerMain {
 
             SharedInformerFactory informerFactory = client.informers();
 
-            MixedOperation<Foo, FooList, Resource<Foo>> fooClient = client.resources(Foo.class, FooList.class);
+            MixedOperation<Foo, KubernetesResourceList<Foo>, Resource<Foo>> fooClient = client.resources(Foo.class);
             SharedIndexInformer<Deployment> deploymentSharedIndexInformer = informerFactory.sharedIndexInformerFor(Deployment.class, 10 * 60 * 1000);
             SharedIndexInformer<Foo> fooSharedIndexInformer = informerFactory.sharedIndexInformerFor(Foo.class, 10 * 60 * 1000);
             SampleController sampleController = new SampleController(client, fooClient, deploymentSharedIndexInformer, fooSharedIndexInformer, namespace);

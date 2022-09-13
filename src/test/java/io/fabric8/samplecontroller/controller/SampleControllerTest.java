@@ -1,6 +1,7 @@
 package io.fabric8.samplecontroller.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
@@ -12,7 +13,6 @@ import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import io.fabric8.samplecontroller.api.model.v1alpha1.FooList;
 import io.fabric8.samplecontroller.api.model.v1alpha1.Foo;
 import io.fabric8.samplecontroller.api.model.v1alpha1.FooSpec;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -41,7 +41,7 @@ class SampleControllerTest {
                 .times(testFoo.getSpec().getReplicas());
 
         SharedInformerFactory informerFactory = client.informers();
-        MixedOperation<Foo, FooList, Resource<Foo>> fooClient = client.resources(Foo.class, FooList.class);
+        MixedOperation<Foo, KubernetesResourceList<Foo>, Resource<Foo>> fooClient = client.resources(Foo.class);
         SharedIndexInformer<Deployment> deploymentSharedIndexInformer = informerFactory.sharedIndexInformerFor(Deployment.class, RESYNC_PERIOD_MILLIS);
         SharedIndexInformer<Foo> fooSharedIndexInformer = informerFactory.sharedIndexInformerFor(Foo.class, RESYNC_PERIOD_MILLIS);
         SampleController sampleController = new SampleController(client, fooClient, deploymentSharedIndexInformer, fooSharedIndexInformer, testNamespace);
