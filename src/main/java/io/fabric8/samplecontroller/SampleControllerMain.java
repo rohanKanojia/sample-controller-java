@@ -42,7 +42,6 @@ public class SampleControllerMain {
             SharedIndexInformer<Foo> fooSharedIndexInformer = informerFactory.sharedIndexInformerFor(Foo.class, 10 * 60 * 1000);
             SampleController sampleController = new SampleController(client, fooClient, deploymentSharedIndexInformer, fooSharedIndexInformer, namespace);
 
-            informerFactory.addSharedInformerEventListener(exception -> logger.error("Exception occurred, but caught", exception));
             Future<Void> startInformersFuture = informerFactory.startAllRegisteredInformers();
             startInformersFuture.get();
 
