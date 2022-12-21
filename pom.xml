@@ -16,7 +16,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
-        <junit-jupiter-engine.version>5.8.2</junit-jupiter-engine.version>
+        <junit-jupiter-engine.version>5.9.1</junit-jupiter-engine.version>
         <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
         <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
         <jkube.version>1.10.1</jkube.version>
