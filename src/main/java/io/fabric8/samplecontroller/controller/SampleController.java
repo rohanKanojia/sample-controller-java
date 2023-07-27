@@ -170,7 +170,7 @@ public class SampleController {
             kubernetesClient.apps().deployments()
                     .inNamespace(foo.getMetadata().getNamespace())
                     .resource(deployment)
-                    .replace();
+                    .update();
         }
 
         // Finally, we update the status block of the Foo resource to reflect the
@@ -220,7 +220,7 @@ public class SampleController {
         // we must use Update instead of UpdateStatus to update the Status block of the Foo resource.
         // UpdateStatus will not allow changes to the Spec of the resource,
         // which is ideal for ensuring nothing other than resource status has been updated.
-        fooClient.inNamespace(foo.getMetadata().getNamespace()).resource(fooClone).replaceStatus();
+        fooClient.inNamespace(foo.getMetadata().getNamespace()).resource(fooClone).updateStatus();
     }
 
     /**

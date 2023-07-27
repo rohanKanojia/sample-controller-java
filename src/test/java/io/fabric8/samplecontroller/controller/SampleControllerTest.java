@@ -32,7 +32,7 @@ class SampleControllerTest {
 
     @Test
     @DisplayName("Should create deployment for with respect to a specified Foo")
-    void testReconcile() throws InterruptedException, JsonProcessingException {
+    void testReconcile() throws InterruptedException {
         // Given
         String testNamespace = "ns1";
         Foo testFoo = getFoo("example-foo", testNamespace, "0800cff3-9d80-11ea-8973-0e13a02d8ebd", "example-foo-deploy");
