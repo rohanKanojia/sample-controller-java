@@ -55,7 +55,7 @@ class SampleControllerTest {
 
         String requestBody = recordedRequest.getBody().readUtf8();
         assertNotNull(requestBody);
-        Deployment deploymentInRequest = Serialization.jsonMapper().readValue(requestBody, Deployment.class);
+        Deployment deploymentInRequest = Serialization.unmarshal(requestBody, Deployment.class);
         assertNotNull(deploymentInRequest);
         assertEquals(testFoo.getSpec().getDeploymentName(), deploymentInRequest.getMetadata().getName());
         assertEquals(1, deploymentInRequest.getMetadata().getOwnerReferences().size());
